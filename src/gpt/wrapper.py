@@ -14,7 +14,8 @@ class OAIWrapper():
 
     def __init__(self, config_file="config/config.yaml"):
         """Initialize the wrapper."""
-        self._last_response = None
+        self.__last_response = None
+
         self.completion_config = {}
         self.chat_completion_config = {}
         self._load_config_from_file(config_file)
@@ -33,7 +34,7 @@ class OAIWrapper():
             self.completion_config = config["completion"]
             self.chat_completion_config = config["chatCompletion"]
         except Exception as e:
-            logging.error(e)
+            logging.error("Error loading config file %s: %s", config_file, e)
 
     def _get_token_count(self, prompt: str, kind: str) -> int:
         """Returns the number of tokens in a text string."""
@@ -45,8 +46,9 @@ class OAIWrapper():
         return len(n_tokens)
 
     def _call(self, prompt, kind: str = "completion", countTokens: bool = True) -> str:
-        if kind not in ["completion", "chatCompletion"]:
-            raise ValueError(f"Invalid kind: {kind}")
+        """Call the OpenAI API based on kind."""
+        assert kind in ["completion", "chatCompletion"], f"Invalid kind: {kind}"
+
         if kind == "completion":
             kwargs = self.completion_config
             kwargs["prompt"] = prompt
@@ -61,6 +63,7 @@ class OAIWrapper():
             method = openai.ChatCompletion.create
             max_tokens = self.chat_completion_config["max_tokens"]
         
+        # Try to count tokens before calling the API
         try:
             if countTokens:
                 tokens = self._get_token_count(prompt, kind)
@@ -71,32 +74,39 @@ class OAIWrapper():
         except Exception as e:
             logging.error("Count tokens error: %s", e)
         
+        # Call the API
         try:
             resp = method(
                 **kwargs
             )
-            self._last_response = resp
+            self.__last_response = resp
             logging.info("Usage: %s", resp.usage)
             logging.info("Finish reason: %s", resp.choices[0].finish_reason)
             return resp.choices[0].message["content"]
         except Exception as e:
             logging.error("Completion error: %s", e)
+
         return ""
 
     def chat_completion(self, prompt, countTokens: bool = True) -> str:
+        """Call the OpenAI API for chatCompletion."""
         return self._call(
             prompt, kind="chatCompletion", countTokens=countTokens
         )
 
     def completion(self, prompt, countTokens: bool = True) -> str:
+        """Call the OpenAI API for completion."""
         return self._call(
             prompt, kind="completion", countTokens=countTokens
         )
 
-    def getLastResponse(self) -> openai.Completion:
-        return self._last_response
+    def get_last_response(self) -> openai.Completion:
+        """Get the last response (openai defined object) from the API."""
+        return self.__last_response
+
 
 if __name__ == "__main__":
+    # For testing
     oai = OAIWrapper()
     prompt = "I want to create a function that returns the sum of two numbers. Give me only the code."
     resp = oai.chat_completion(prompt)
