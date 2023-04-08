@@ -1,0 +1,21 @@
+{
+  "id": "chatcmpl-72na9jZ3AzSWgA6WSxRrdEaYGRwEY",
+  "object": "chat.completion",
+  "created": 1680901605,
+  "model": "gpt-3.5-turbo-0301",
+  "usage": {
+    "prompt_tokens": 251,
+    "completion_tokens": 158,
+    "total_tokens": 409
+  },
+  "choices": [
+    {
+      "message": {
+        "role": "assistant",
+        "content": "```python\nclass BankAccount:\n    def __init__(self, account_number: int, account_holder: str, balance: float):\n        self._account_number = account_number\n        self._account_holder = account_holder\n        self._balance = balance\n\n    def deposit(self, amount: float) -> None:\n        if amount < 0:\n            raise ValueError(\"Amount must be positive.\")\n        self._balance += amount\n\n    def withdraw(self, amount: float) -> bool:\n        if amount < 0:\n            raise ValueError(\"Amount must be positive.\")\n        if self._balance >= amount:\n            self._balance -= amount\n            return True\n        else:\n            return False\n\n    def get_balance(self) -> float:\n        return self._balance\n```"
+      },
+      "finish_reason": "stop",
+      "index": 0
+    }
+  ]
+}
